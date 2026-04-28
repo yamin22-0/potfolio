@@ -1,0 +1,27 @@
+/* index.css - make sure this is clean */
+@import "tailwindcss";
+
+:root {
+  --background-color: #F5F5F5;
+  --text-color: #141414;
+  --accent-color: #C8B8A2;
+}
+
+[data-theme='dark'] {
+  --background-color: #141414;
+  --text-color: #F5F5F5;
+  --accent-color: #C8B8A2;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure no conflicting margins/paddings */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
