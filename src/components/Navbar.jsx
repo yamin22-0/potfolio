@@ -7,10 +7,12 @@ const COLORS = {
   light: {
     bg: '#F5F5F5',
     text: '#141414',
+    iconColor: '#141414',
     accent: '#C8B8A2',
     accentDark: '#a8967e',
-    border: 'rgba(0,0,0,0.08)',
+    border: '#d0ccc8',          // solid visible border on light bg
     menuBorder: 'rgba(0,0,0,0.06)',
+    btnBg: '#ffffff',           // white pill behind icons so they pop
     ctaBg: '#141414',
     ctaText: '#F5F5F5',
     ctaHoverBg: '#C8B8A2',
@@ -19,10 +21,12 @@ const COLORS = {
   dark: {
     bg: '#141414',
     text: '#F5F5F5',
+    iconColor: '#F5F5F5',
     accent: '#C8B8A2',
     accentDark: '#a8967e',
-    border: 'rgba(255,255,255,0.08)',
+    border: 'rgba(255,255,255,0.22)', // more visible on dark bg
     menuBorder: 'rgba(255,255,255,0.06)',
+    btnBg: 'rgba(255,255,255,0.07)',
     ctaBg: '#C8B8A2',
     ctaText: '#141414',
     ctaHoverBg: '#F5F5F5',
@@ -143,20 +147,22 @@ function Navbar({ toggleTheme, theme }) {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: '50%',
-              border: `1px solid ${c.border}`,
-              background: 'transparent',
-              color: c.text,
+              border: `1.5px solid ${c.border}`,
+              background: c.btnBg,
+              color: c.iconColor,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               flexShrink: 0,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = c.accent + '28'
+              e.currentTarget.style.background = c.accent
               e.currentTarget.style.borderColor = c.accent
+              e.currentTarget.style.color = '#141414'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.background = c.btnBg
               e.currentTarget.style.borderColor = c.border
+              e.currentTarget.style.color = c.iconColor
             }}
           >
             {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
@@ -214,26 +220,28 @@ function Navbar({ toggleTheme, theme }) {
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
             style={{
-              display: 'flex', /* hidden on desktop via CSS */
+              display: 'flex',
               width: 38,
               height: 38,
               alignItems: 'center',
               justifyContent: 'center',
-              border: `1px solid ${c.border}`,
+              border: `1.5px solid ${c.border}`,
               borderRadius: 10,
-              background: 'transparent',
-              color: c.text,
+              background: c.btnBg,
+              color: c.iconColor,
               cursor: 'pointer',
               transition: 'all 0.2s',
               flexShrink: 0,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = c.accent + '20'
+              e.currentTarget.style.background = c.accent
               e.currentTarget.style.borderColor = c.accent
+              e.currentTarget.style.color = '#141414'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.background = c.btnBg
               e.currentTarget.style.borderColor = c.border
+              e.currentTarget.style.color = c.iconColor
             }}
           >
             {menuOpen ? <X size={18} /> : <Menu size={18} />}

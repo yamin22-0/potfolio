@@ -474,7 +474,7 @@ export default function About() {
             }}
           >
             {[
-              { target: 0.5, suffix: '+', label: 'Years Experience' },
+              { target: 1, suffix: '+', label: 'Years Experience' },
               { target: 7, suffix: '+', label: 'Projects Shipped' },
               { target: 98, suffix: '%', label: 'Satisfaction Rate' },
             ].map((stat, idx) => (
