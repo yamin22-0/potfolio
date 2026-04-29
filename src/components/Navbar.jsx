@@ -1,39 +1,87 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Sun, Moon, Menu, X } from 'lucide-react'
 
 const SECTIONS = ['hero', 'about', 'services', 'skills', 'contact']
 
 const COLORS = {
-  light: { bg: '#F5F5F5', text: '#141414', accent: '#C8B8A2' },
-  dark: { bg: '#141414', text: '#F5F5F5', accent: '#C8B8A2' },
+  light: {
+    bg: '#F5F5F5',
+    text: '#141414',
+    accent: '#C8B8A2',
+    accentDark: '#a8967e',
+    border: 'rgba(0,0,0,0.08)',
+    menuBorder: 'rgba(0,0,0,0.06)',
+    ctaBg: '#141414',
+    ctaText: '#F5F5F5',
+    ctaHoverBg: '#C8B8A2',
+    ctaHoverText: '#141414',
+  },
+  dark: {
+    bg: '#141414',
+    text: '#F5F5F5',
+    accent: '#C8B8A2',
+    accentDark: '#a8967e',
+    border: 'rgba(255,255,255,0.08)',
+    menuBorder: 'rgba(255,255,255,0.06)',
+    ctaBg: '#C8B8A2',
+    ctaText: '#141414',
+    ctaHoverBg: '#F5F5F5',
+    ctaHoverText: '#141414',
+  },
+}
+
+/* Smooth-scroll helper */
+const scrollTo = (id) => {
+  const el = document.getElementById(id)
+  if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
 
 function Navbar({ toggleTheme, theme }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const c = COLORS[theme] ?? COLORS.light
+
+  /* Add subtle shadow on scroll */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const handleContact = () => {
+    setMenuOpen(false)
+    scrollTo('contact')
+  }
 
   return (
     <header
       className="sticky top-0 z-50 w-full"
       style={{
         backgroundColor: c.bg,
-        borderBottom: `1px solid ${
-          theme === 'dark'
-            ? 'rgba(255,255,255,0.08)'
-            : 'rgba(0,0,0,0.08)'
-        }`,
+        borderBottom: `1px solid ${c.border}`,
+        boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.08)' : 'none',
         transition: 'all 0.3s ease',
       }}
     >
-      <nav className="relative flex items-center justify-between px-6 md:px-10 h-[70px]">
-
-        {/* LOGO */}
-        <div className="flex-shrink-0 pl-2">
+      <nav
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 1.5rem',
+          height: 70,
+          maxWidth: 1400,
+          margin: '0 auto',
+        }}
+      >
+        {/* ── LOGO ── */}
+        <div style={{ flexShrink: 0 }}>
           <img
             src="potfolio-logo.png"
             alt="logo"
             style={{
-              height: '48px',
+              height: 120,
               objectFit: 'contain',
               filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none',
               transition: '0.3s',
@@ -41,132 +89,273 @@ function Navbar({ toggleTheme, theme }) {
           />
         </div>
 
-        {/* CENTER NAV */}
-        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-10">
+        {/* ── CENTER NAV (desktop) ── */}
+        <div
+          style={{
+            display: 'none',
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            alignItems: 'center',
+            gap: '2.5rem',
+          }}
+          className="desktop-nav"
+        >
           {SECTIONS.map((section) => (
             <a
               key={section}
               href={`#${section}`}
-              className="group relative text-sm"
-              style={{ color: c.text }}
+              onClick={(e) => {
+                e.preventDefault()
+                scrollTo(section)
+              }}
+              style={{
+                position: 'relative',
+                fontSize: '0.85rem',
+                fontWeight: 500,
+                color: c.text,
+                textDecoration: 'none',
+                opacity: 0.7,
+                transition: 'opacity 0.2s',
+                letterSpacing: '0.03em',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+              className="nav-link"
             >
-              <span className="opacity-70 group-hover:opacity-100 transition">
-                {section.charAt(0).toUpperCase() + section.slice(1)}
-              </span>
-
-              {/* underline */}
-              <span
-                className="absolute left-0 -bottom-1 h-[2px] w-0 group-hover:w-full transition-all duration-300"
-                style={{ background: c.accent }}
-              />
+              {section.charAt(0).toUpperCase() + section.slice(1)}
+              <span className="nav-underline" style={{ background: c.accent }} />
             </a>
           ))}
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className="flex items-center gap-3">
+        {/* ── RIGHT SIDE ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
 
           {/* THEME TOGGLE */}
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 flex items-center justify-center rounded-full transition"
-            style={{ color: c.text }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = 'rgba(200,184,162,0.15)')
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = 'transparent')
-            }
-          >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
-
-          {/* CTA */}
-          <button
-            className="hidden md:block px-5 py-2 rounded-full text-sm transition"
+            aria-label="Toggle theme"
             style={{
-              border: `1px solid ${c.accent}`,
+              width: 38,
+              height: 38,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              border: `1px solid ${c.border}`,
+              background: 'transparent',
               color: c.text,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              flexShrink: 0,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = c.accent
-              e.currentTarget.style.color = '#141414'
+              e.currentTarget.style.background = c.accent + '28'
+              e.currentTarget.style.borderColor = c.accent
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = c.text
+              e.currentTarget.style.borderColor = c.border
             }}
           >
+            {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+          </button>
+
+          {/* CTA — desktop */}
+          <button
+            onClick={handleContact}
+            className="cta-btn"
+            style={{
+              display: 'none', /* shown via CSS media query */
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.55rem 1.25rem',
+              borderRadius: 999,
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              cursor: 'pointer',
+              border: 'none',
+              background: c.ctaBg,
+              color: c.ctaText,
+              transition: 'all 0.22s ease',
+              boxShadow: theme === 'dark'
+                ? '0 2px 12px rgba(200,184,162,0.18)'
+                : '0 2px 12px rgba(0,0,0,0.12)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = c.ctaHoverBg
+              e.currentTarget.style.color = c.ctaHoverText
+              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow = theme === 'dark'
+                ? '0 6px 20px rgba(200,184,162,0.3)'
+                : '0 6px 20px rgba(0,0,0,0.18)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = c.ctaBg
+              e.currentTarget.style.color = c.ctaText
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = theme === 'dark'
+                ? '0 2px 12px rgba(200,184,162,0.18)'
+                : '0 2px 12px rgba(0,0,0,0.12)'
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
             Contact Me
           </button>
 
-          {/* MOBILE MENU BUTTON */}
+          {/* MOBILE HAMBURGER */}
           <button
-            className="md:hidden w-9 h-9 flex items-center justify-center"
+            className="mobile-menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
-            style={{ color: c.text }}
+            aria-label="Toggle menu"
+            style={{
+              display: 'flex', /* hidden on desktop via CSS */
+              width: 38,
+              height: 38,
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: `1px solid ${c.border}`,
+              borderRadius: 10,
+              background: 'transparent',
+              color: c.text,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = c.accent + '20'
+              e.currentTarget.style.borderColor = c.accent
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.borderColor = c.border
+            }}
           >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </nav>
 
-      {/* MOBILE MENU */}
+      {/* ── MOBILE MENU ── */}
       <div
         style={{
-          maxHeight: menuOpen ? '350px' : '0px',
+          maxHeight: menuOpen ? '400px' : '0px',
           overflow: 'hidden',
-          transition: '0.35s ease',
+          transition: 'max-height 0.35s cubic-bezier(0.4,0,0.2,1)',
           backgroundColor: c.bg,
-          borderTop: menuOpen
-            ? `1px solid ${
-                theme === 'dark'
-                  ? 'rgba(255,255,255,0.08)'
-                  : 'rgba(0,0,0,0.08)'
-              }`
-            : 'none',
+          borderTop: menuOpen ? `1px solid ${c.border}` : 'none',
         }}
       >
-        <div className="flex flex-col px-6 py-4 gap-2">
+        <div style={{ padding: '0.75rem 1.5rem 1.25rem' }}>
           {SECTIONS.map((section) => (
             <a
               key={section}
               href={`#${section}`}
-              onClick={() => setMenuOpen(false)}
-              className="py-2 text-sm opacity-70 hover:opacity-100 transition"
+              onClick={(e) => {
+                e.preventDefault()
+                setMenuOpen(false)
+                scrollTo(section)
+              }}
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0.75rem 0',
+                fontSize: '0.9rem',
+                fontWeight: 500,
                 color: c.text,
-                borderBottom: `1px solid ${
-                  theme === 'dark'
-                    ? 'rgba(255,255,255,0.08)'
-                    : 'rgba(0,0,0,0.08)'
-                }`,
+                textDecoration: 'none',
+                opacity: 0.75,
+                borderBottom: `1px solid ${c.menuBorder}`,
+                transition: 'opacity 0.2s, padding-left 0.2s',
+                letterSpacing: '0.02em',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1'
+                e.currentTarget.style.paddingLeft = '0.5rem'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0.75'
+                e.currentTarget.style.paddingLeft = '0'
               }}
             >
               {section.charAt(0).toUpperCase() + section.slice(1)}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
             </a>
           ))}
 
-          {/* MOBILE CTA */}
+          {/* Mobile CTA */}
           <button
-            className="mt-3 py-2 rounded-full text-sm transition"
+            onClick={handleContact}
             style={{
-              border: `1px solid ${c.accent}`,
-              color: c.text,
+              marginTop: '1rem',
+              width: '100%',
+              padding: '0.8rem',
+              borderRadius: 12,
+              fontSize: '0.88rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              cursor: 'pointer',
+              border: 'none',
+              background: c.ctaBg,
+              color: c.ctaText,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.22s ease',
+              boxShadow: theme === 'dark'
+                ? '0 2px 16px rgba(200,184,162,0.2)'
+                : '0 2px 16px rgba(0,0,0,0.14)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = c.accent
-              e.currentTarget.style.color = '#141414'
+              e.currentTarget.style.background = c.ctaHoverBg
+              e.currentTarget.style.color = c.ctaHoverText
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = c.text
+              e.currentTarget.style.background = c.ctaBg
+              e.currentTarget.style.color = c.ctaText
             }}
           >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
             Contact Me
           </button>
         </div>
       </div>
+
+      {/* ── Scoped Styles ── */}
+      <style>{`
+        /* Desktop nav links */
+        @media (min-width: 768px) {
+          .desktop-nav { display: flex !important; }
+          .cta-btn     { display: inline-flex !important; }
+          .mobile-menu-btn { display: none !important; }
+        }
+
+        /* Nav underline animation */
+        .nav-link { overflow: visible; }
+        .nav-underline {
+          position: absolute;
+          left: 0;
+          bottom: -3px;
+          height: 2px;
+          width: 0;
+          border-radius: 2px;
+          transition: width 0.28s ease;
+          display: block;
+        }
+        .nav-link:hover .nav-underline { width: 100%; }
+      `}</style>
     </header>
   )
 }

@@ -1,4 +1,4 @@
-// Hero.jsx - FIXED ORBIT (icons properly surround image)
+// Hero.jsx - MOBILE FIXED
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, FileDown, X, ArrowDown } from 'lucide-react'
@@ -91,22 +91,166 @@ const SkillBar = ({ name, pct, delay = 0 }) => {
 }
 
 const NAVBAR_H = 72
-const PHOTO_W = 240
-const PHOTO_H = 320
-const ORBIT_R = 220  // orbit radius — large enough to clear the photo
 
-// orbit chips: 6 chips evenly spaced around the image
+// Orbit chips with angles — same as before
 const ORBIT_CHIPS = [
-  { icon: <ReactIcon />,      label: 'React',        bg: '#0D1117', angle: -90  },  // top
-  { icon: <TypeScriptIcon />, label: 'TypeScript',   bg: '#1a3a5c', angle: -30  },  // top-right
-  { icon: <TailwindIcon />,   label: 'Tailwind',     bg: '#0c3547', angle:  30  },  // bottom-right
-  { icon: <NextjsIcon />,     label: 'Next.js',      bg: '#111111', angle:  90  },  // bottom
-  { icon: <FramerIcon />,     label: 'Framer',       bg: '#0033cc', angle:  150 },  // bottom-left
-  { icon: <NodeIcon />,       label: 'Node.js',      bg: '#1a2e1a', angle: -150 },  // top-left
+  { icon: <ReactIcon />,      label: 'React',       bg: '#0D1117', angle: -90  },
+  { icon: <TypeScriptIcon />, label: 'TypeScript',  bg: '#1a3a5c', angle: -30  },
+  { icon: <TailwindIcon />,   label: 'Tailwind',    bg: '#0c3547', angle:  30  },
+  { icon: <NextjsIcon />,     label: 'Next.js',     bg: '#111111', angle:  90  },
+  { icon: <FramerIcon />,     label: 'Framer',      bg: '#0033cc', angle:  150 },
+  { icon: <NodeIcon />,       label: 'Node.js',     bg: '#1a2e1a', angle: -150 },
 ]
 
-// The orbit container must be large enough to hold radius + chip width on each side
-const ORBIT_BOX = ORBIT_R * 2 + 140  // extra 140px for chip width on each side
+/* ─── Responsive Orbit ────────────────────────────────── */
+// Uses CSS custom property --orbit-r set by the wrapper,
+// so the orbit scales with the container instead of being fixed pixels.
+const OrbitSection = () => {
+  // We'll use a viewBox-based SVG approach for the ring,
+  // and absolute % positioning for chips so everything scales naturally.
+
+  // Logical design space: 580×580 (desktop). On mobile we shrink the container.
+  const SIZE = 580        // logical px square
+  const CENTER = SIZE / 2 // 290
+  const ORBIT_R = 210     // orbit radius in logical px
+  const PHOTO_W = 200
+  const PHOTO_H = 270
+
+  return (
+    <div
+      className="orbit-responsive-wrapper"
+      style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: SIZE,
+        // Maintain square aspect so chips never overflow
+        aspectRatio: '1 / 1',
+        margin: '0 auto',
+      }}
+    >
+      {/* Dashed ring — SVG scales with container */}
+      <svg
+        aria-hidden="true"
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          opacity: 0.12,
+          pointerEvents: 'none',
+        }}
+      >
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={ORBIT_R}
+          fill="none"
+          stroke="var(--text)"
+          strokeWidth="1.5"
+          strokeDasharray="6 8"
+        />
+      </svg>
+
+      {/* Photo — centered via % */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: 0.2 }}
+        style={{
+          position: 'absolute',
+          left: `${((CENTER - PHOTO_W / 2) / SIZE) * 100}%`,
+          top:  `${((CENTER - PHOTO_H / 2) / SIZE) * 100}%`,
+          width: `${(PHOTO_W / SIZE) * 100}%`,
+          // height via aspect ratio of photo
+          aspectRatio: `${PHOTO_W} / ${PHOTO_H}`,
+          borderRadius: 20,
+          overflow: 'hidden',
+          border: '2px solid var(--border)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+          zIndex: 2,
+        }}
+      >
+        <img
+          src="/portfolio.jpeg"
+          alt="Binyamin Ahmed"
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={e => { e.currentTarget.src = 'https://via.placeholder.com/200x270' }}
+        />
+
+        {/* Experience badge */}
+        <motion.div
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.9 }}
+          style={{
+            position: 'absolute',
+            bottom: 12,
+            left: 10,
+            background: 'var(--text)',
+            color: 'var(--bg)',
+            borderRadius: 10,
+            padding: '0.5rem 0.75rem',
+            boxShadow: '0 10px 20px rgba(0,0,0,0.25)',
+          }}
+        >
+          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--accent)', lineHeight: 1 }}>0.5+</div>
+          <div style={{ fontSize: '0.55rem', opacity: 0.7, marginTop: '0.15rem' }}>Years mastery</div>
+        </motion.div>
+      </motion.div>
+
+      {/* Orbit Chips — positioned using % of SIZE */}
+      {ORBIT_CHIPS.map((chip, i) => {
+        const rad = (chip.angle * Math.PI) / 180
+        const x = CENTER + ORBIT_R * Math.cos(rad)
+        const y = CENTER + ORBIT_R * Math.sin(rad)
+
+        return (
+          <motion.div
+            key={chip.label}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.5 + i * 0.15 }}
+            style={{
+              position: 'absolute',
+              left: `${(x / SIZE) * 100}%`,
+              top: `${(y / SIZE) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              padding: '0.4rem 0.65rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+              zIndex: 10,
+              backdropFilter: 'blur(8px)',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+            }}
+          >
+            <span style={{
+              width: 26,
+              height: 26,
+              borderRadius: 6,
+              background: chip.bg,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              {chip.icon}
+            </span>
+            <span className="chip-label" style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text)' }}>
+              {chip.label}
+            </span>
+          </motion.div>
+        )
+      })}
+    </div>
+  )
+}
 
 export default function Hero() {
   const handleContact = () =>
@@ -130,7 +274,10 @@ export default function Hero() {
         backgroundColor: 'var(--bg)',
         color: 'var(--text)',
         position: 'relative',
+        // KEY FIX: prevent horizontal overflow on mobile
         overflowX: 'hidden',
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -140,6 +287,8 @@ export default function Hero() {
           margin: '0 auto',
           padding: '1.5rem 2rem',
           alignItems: 'center',
+          boxSizing: 'border-box',
+          width: '100%',
         }}
       >
         {/* ── LEFT COLUMN ─────────────────────────────── */}
@@ -152,6 +301,9 @@ export default function Hero() {
             flexDirection: 'column',
             justifyContent: 'center',
             padding: '1rem',
+            // KEY FIX: prevent text overflow
+            minWidth: 0,
+            overflow: 'hidden',
           }}
         >
           {/* Availability badge */}
@@ -161,7 +313,7 @@ export default function Hero() {
           </motion.div>
 
           {/* Headline */}
-          <motion.h1 variants={fadeUp} style={{ marginBottom: '0.75rem', lineHeight: 1.1, fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
+          <motion.h1 variants={fadeUp} style={{ marginBottom: '0.75rem', lineHeight: 1.1 }}>
             Frontend<br />
             <em>Developer</em><br />
             &amp; Craftsman.
@@ -183,7 +335,13 @@ export default function Hero() {
           {/* Description */}
           <motion.p
             variants={fadeUp}
-            style={{ maxWidth: '38ch', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--text-muted)' }}
+            style={{
+              maxWidth: '38ch',
+              marginBottom: '1.5rem',
+              fontSize: '0.9rem',
+              lineHeight: 1.6,
+              color: 'var(--text-muted)',
+            }}
           >
             Specialising in React ecosystems and pixel-perfect interfaces.
             I bridge the gap between design and engineering to deliver
@@ -203,6 +361,7 @@ export default function Hero() {
           {/* CTA Buttons */}
           <motion.div
             variants={fadeUp}
+            className="hero-btns"
             style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}
           >
             <button className="btn btn-primary" onClick={handleContact}>
@@ -265,6 +424,7 @@ export default function Hero() {
                   justifyContent: 'center',
                   color: 'var(--text-muted)',
                   transition: 'all 0.22s ease',
+                  flexShrink: 0,
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.borderColor = 'var(--accent)'
@@ -290,155 +450,30 @@ export default function Hero() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '2rem',
+            gap: '1.5rem',
+            // KEY FIX: don't let this column overflow
+            minWidth: 0,
+            overflow: 'hidden',
           }}
         >
-          {/* Orbit Container — sized to fully contain orbit + chips */}
-          <div
-            style={{
-              position: 'relative',
-              width: ORBIT_BOX,
-              height: ORBIT_BOX,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {/* Dashed orbit ring */}
-            <svg
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0.12,
-                pointerEvents: 'none',
-              }}
-              viewBox={`0 0 ${ORBIT_BOX} ${ORBIT_BOX}`}
-            >
-              <circle
-                cx={ORBIT_BOX / 2}
-                cy={ORBIT_BOX / 2}
-                r={ORBIT_R}
-                fill="none"
-                stroke="var(--text)"
-                strokeWidth="1.5"
-                strokeDasharray="6 8"
-              />
-            </svg>
-
-            {/* Photo — centered inside orbit box */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: 0.2 }}
-              style={{
-                position: 'relative',
-                zIndex: 2,
-                width: PHOTO_W,
-                height: PHOTO_H,
-                borderRadius: 20,
-                overflow: 'hidden',
-                border: '2px solid var(--border)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                flexShrink: 0,
-              }}
-            >
-              <img
-                src="/portfolio.jpeg"
-                alt="Binyamin Ahmed"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={e => { e.currentTarget.src = 'https://via.placeholder.com/240x320' }}
-              />
-
-              {/* Experience badge — overlaid on photo */}
-              <motion.div
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.9 }}
-                style={{
-                  position: 'absolute',
-                  bottom: 16,
-                  left: 12,
-                  background: 'var(--text)',
-                  color: 'var(--bg)',
-                  borderRadius: 12,
-                  padding: '0.6rem 0.9rem',
-                  boxShadow: '0 10px 20px rgba(0,0,0,0.25)',
-                }}
-              >
-                <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--accent)', lineHeight: 1 }}>0.5+</div>
-                <div style={{ fontSize: '0.6rem', opacity: 0.7, marginTop: '0.2rem' }}>Years mastery</div>
-              </motion.div>
-            </motion.div>
-
-            {/* Orbit Chips — positioned relative to the orbit box center */}
-            {ORBIT_CHIPS.map((chip, i) => {
-              const rad = (chip.angle * Math.PI) / 180
-              const cx = ORBIT_BOX / 2
-              const cy = ORBIT_BOX / 2
-              const x = cx + ORBIT_R * Math.cos(rad)
-              const y = cy + ORBIT_R * Math.sin(rad)
-
-              return (
-                <motion.div
-                  key={chip.label}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: 0.5 + i * 0.15 }}
-                  style={{
-                    position: 'absolute',
-                    left: x,
-                    top: y,
-                    transform: 'translate(-50%, -50%)',
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 10,
-                    padding: '0.45rem 0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                    zIndex: 10,
-                    backdropFilter: 'blur(8px)',
-                    whiteSpace: 'nowrap',
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <span style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 7,
-                    background: chip.bg,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    {chip.icon}
-                  </span>
-                  <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text)' }}>
-                    {chip.label}
-                  </span>
-                </motion.div>
-              )
-            })}
-          </div>
+          {/* Responsive orbit */}
+          <OrbitSection />
 
           {/* Core Skills Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
+            className="skills-card"
             style={{
-              width: PHOTO_W,
+              width: '100%',
+              maxWidth: 280,
               background: 'var(--card)',
               border: '1px solid var(--border)',
               borderRadius: 16,
               padding: '1.2rem',
               boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+              boxSizing: 'border-box',
             }}
           >
             <div className="label" style={{ marginBottom: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
@@ -473,22 +508,68 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Global Styles */}
+      {/* ── Global Styles ──────────────────────────────── */}
       <style>{`
+        /* Reset box model globally in hero */
+        #hero *, #hero *::before, #hero *::after {
+          box-sizing: border-box;
+        }
+
         .hero-grid-responsive {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 2rem;
         }
 
+        /* ── Tablet ── */
         @media (max-width: 1100px) {
           .hero-grid-responsive {
             grid-template-columns: 1fr !important;
-            gap: 3rem;
-            padding: 1rem !important;
+            gap: 2rem;
+            padding: 1rem 1.25rem !important;
           }
         }
 
+        /* ── Mobile ── */
+        @media (max-width: 640px) {
+          .hero-grid-responsive {
+            padding: 0.75rem 1rem !important;
+          }
+
+          /* Orbit wrapper: give it a sensible max on small phones */
+          .orbit-responsive-wrapper {
+            max-width: min(92vw, 360px) !important;
+          }
+
+          /* Hide chip labels on very small screens to prevent overflow */
+          @media (max-width: 380px) {
+            .chip-label {
+              display: none;
+            }
+          }
+
+          /* Buttons stack on mobile */
+          .hero-btns {
+            flex-direction: column !important;
+          }
+          .hero-btns .btn {
+            width: 100% !important;
+            justify-content: center;
+          }
+
+          .skills-card {
+            max-width: 92vw !important;
+          }
+        }
+
+        /* ── Mid (641–1100) ── */
+        @media (min-width: 641px) and (max-width: 1100px) {
+          .orbit-responsive-wrapper {
+            max-width: 480px !important;
+          }
+        }
+
+        /* ── Shared component styles ── */
         .badge {
           display: inline-flex;
           align-items: center;
@@ -509,6 +590,7 @@ export default function Hero() {
           border-radius: 50%;
           display: inline-block;
           animation: pulse 2s infinite;
+          flex-shrink: 0;
         }
 
         @keyframes pulse {
@@ -517,9 +599,10 @@ export default function Hero() {
         }
 
         h1 {
-          font-size: clamp(2rem, 5vw, 3.5rem);
+          font-size: clamp(2rem, 8vw, 3.5rem);
           font-weight: 800;
           letter-spacing: -0.02em;
+          word-break: break-word;
         }
 
         h1 em {
@@ -536,6 +619,7 @@ export default function Hero() {
           font-size: 0.7rem;
           font-weight: 500;
           color: var(--text);
+          white-space: nowrap;
         }
 
         .pill.active {
@@ -548,18 +632,19 @@ export default function Hero() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          padding: 0.7rem 1.5rem;
+          padding: 0.75rem 1.5rem;
           border-radius: 12px;
           font-size: 0.85rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
           border: none;
+          font-family: var(--font-body);
         }
 
         .btn-primary {
           background: var(--accent);
-          color: white;
+          color: #fff;
         }
 
         .btn-primary:hover {
@@ -569,7 +654,7 @@ export default function Hero() {
 
         .btn-outline {
           background: transparent;
-          border: 1px solid var(--border);
+          border: 1px solid var(--border-strong);
           color: var(--text);
         }
 
